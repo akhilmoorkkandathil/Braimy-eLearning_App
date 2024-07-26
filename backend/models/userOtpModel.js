@@ -12,12 +12,12 @@ const userOtpSchema = mongoose.Schema({
     },
     createdAt: {
         type: Date,
-        default: Date.now(),
-        index: { expires: '3m' }
+        default: Date.now,
+        expires: 60  
     }
     
 });
-userOtpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 180 });
+userOtpSchema.index({ createdAt: 1 }, { expireAfterSeconds: 60 });
 
 const UserOtp= mongoose.model('UserOtp',userOtpSchema);
 

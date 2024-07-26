@@ -5,14 +5,16 @@ const path = require('path')
 const dotenv = require('dotenv');
 const cors = require('cors');
 const { Server } = require('socket.io');
-
+const webpush = require('web-push')
 
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
 
 const userRouter = require('./routes/userRoutes');
-// const adminRouter = require('./routes//adminRoutes');
-// const coordinatorRouter = require("./routes/coordinatorRoutes");
+const tutorRouter = require('./routes/tutorRoutes');
+const coordinatorRouter = require('./routes/coordinatorRoutes');
+const adminRouter = require('./routes/adminRoutes');
+
 
 const app = express();
 dotenv.config();
@@ -21,12 +23,18 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(cookieParser());
 app.use(express.static('public'));
-app.use(cors(
-    {
-        origin: process.env.BASE_URL_CLIENT,
-        credentials: true
+
+const allowedOrigins = [process.env.BASE_URL_CLIENT, 'http://127.0.0.1:8081','http://10.20.4.220:8081'];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
-)); 
+  },
+  credentials: true
+}));
 
 // Initialize and use the session middleware
 app.use(session({
@@ -60,9 +68,24 @@ function connectMongoDB(){
 
 }
 
+const extractToken = (req, res, next) => {
+    const token = req.cookies.user_access_token;
+    if (token) {
+      req.token = token; // Remove 'Bearer ' from the start
+    } else {
+      req.token = null;
+    }
+    next();
+  };
+
+  app.use(extractToken);
+
 app.use("/images",express.static(path.join('backend/images')))
 
 app.use('/user', userRouter);
+ app.use('/admin',adminRouter);
+app.use('/coordinator',coordinatorRouter);
+app.use('/tutor',tutorRouter)
 
 
 
@@ -85,7 +108,6 @@ io.on('connection', (socket)=>{
 
 //Response Handler middleware
 app.use((responseObj,req,res,next)=>{
-    //console.log('checkResponseObj',responseObj);
     const statusCode = responseObj.status || 500;
     const message = responseObj.message || "Something went wrong!";
     return res.status(statusCode).json({
@@ -101,3 +123,19 @@ server.listen(8000, ()=>{
     connectMongoDB();
     console.log('Connected to backend');
 });
+
+
+
+// PushSubscription
+// endpoint
+// : 
+// "https://fcm.googleapis.com/fcm/send/erCO56syKMk:APA91bEIXJX3_OaFKkjnpm51YY_4FkNmGGBUN3QGCKwT8_cnF2st3-qesQE4HR6CrchcZWn-z6G5dLE3z_J76lDA9kno3JFqJSMLQKNYD83tbgkX8Y55xVs_pZp-8ZfO11vCJF1P4b-E"
+// expirationTime
+// : 
+// null
+// options
+// : 
+// PushSubscriptionOptions {userVisibleOnly: true, applicationServerKey: ArrayBuffer(65)}
+// [[Prototype]]
+// : 
+// PushSubscription

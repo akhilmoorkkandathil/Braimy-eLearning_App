@@ -1,25 +1,31 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const userSchema = mongoose.Schema({
-    fullName:{
+const userSchema = new Schema({
+    username: {
         type: String,
         required: true
     },
-    email:{
+    email: {
         type: String,
         required: true,
         unique: true
     },
-    password:{
-        type: String,
-        required: true,
+    class: {
+        type: Number
     },
-    phone:{
+    password: {
+        type: String
+    },
+    phone: {
         type: String
     },
     isVerified: {
         type: Boolean,
         default: false
+    },
+    photoUrl: {
+        type: String
     },
     isBlocked: {
         type: Boolean,
@@ -29,9 +35,51 @@ const userSchema = mongoose.Schema({
         type: Boolean,
         default: false
     },
+    OTP: {
+        type: String,
+        default: null
+    },
+    tutor: {
+        type: Schema.Types.ObjectId,
+        ref: 'Tutor'
+    },
+    coordinator: {
+        type: Schema.Types.ObjectId,
+        ref: 'Coordinator' // Assuming your coordinator collection/model is named 'Coordinator'
+    },
+    course: {
+        type: Schema.Types.ObjectId,
+        ref: 'Course' // Assuming your course collection/model is named 'Course'
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    selectedDays: {
+        type: [String], // Array of strings to store selected days
+    },
+    preferredTime: {
+        type: String, // String to store preferred time
+    },
+    classDuration: {
+        type: String, // String to store preferred time
+    },
+    classStatus: {
+      type: String,
+      enum: ['Scheduled', 'Completed'],
+      default: 'Scheduled'
+    },
+    approvalStatus: {
+      type: String,
+      enum: ['Pending', 'Approved', 'Rejected'],
+      default: 'Pending'
+    },
+    subscription: {
+        type: Object,
+        default: null
+    }
 });
 
-//export default mongoose.model('User', userSchema);
-const User= mongoose.model('User',userSchema);
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;
